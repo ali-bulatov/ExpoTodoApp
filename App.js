@@ -31,7 +31,13 @@ export default class App extends Component {
       ],
     });
   };
-  updateList = (list) => {};
+  updateList = (list) => {
+    this.setState({
+      lists: this.state.lists.map((item) => {
+        return item.id === list.id ? list : item;
+      }),
+    });
+  };
 
   toggleAddTodoModal() {
     this.setState({ addTodoVisible: !this.state.addTodoVisible });
@@ -76,6 +82,7 @@ export default class App extends Component {
             horizontal={true}
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => this.renderList(item)}
+            keyboardShouldPersistTaps="always"
           />
         </View>
       </View>
