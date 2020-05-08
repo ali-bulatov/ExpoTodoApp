@@ -29,12 +29,22 @@ export default class TodoModal extends Component {
 
   addTodo = () => {
     let list = this.props.list;
-    list.todos.push({ title: this.state.newTodo, completed: false });
 
-    this.props.updateList(list);
+    if (!list.todos.some((todo) => todo.title === this.state.newTodo)) {
+      list.todos.push({ title: this.state.newTodo, completed: false });
+      this.props.updateList(list);
+    }
+
     this.setState({ newTodo: "" });
 
     Keyboard.dismiss();
+  };
+
+  deleteTodo = (index) => {
+    let list = this.props.list;
+    list.todos.splice(index, 1);
+
+    this.props.updateList(list);
   };
 
   renderTodo = (todo, index) => {
@@ -68,10 +78,28 @@ export default class TodoModal extends Component {
   };
 
   rightActions = (dragX, index) => {
+    const scale = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [1, 0.9],
+      extrapolate: "clamp",
+    });
+
+    const opacity = dragX.interpolate({
+      inputRange: [-100, -20, 0],
+      outputRange: [1, 0.9, 0],
+      extrapolate: "clamp",
+    });
+
     return (
-      <TouchableOpacity>
-        <Animated.View style={styles.deleteButton}>
-          <Animated.Text style={{ color: colors.white, fontWeight: "800" }}>
+      <TouchableOpacity onPress={() => this.deleteTodo(index)}>
+        <Animated.View style={[styles.deleteButton, { opacity: opacity }]}>
+          <Animated.Text
+            style={{
+              color: colors.white,
+              fontWeight: "800",
+              transform: [{ scale }],
+            }}
+          >
             Delete
           </Animated.Text>
         </Animated.View>
@@ -111,15 +139,11 @@ export default class TodoModal extends Component {
               </Text>
             </View>
           </View>
-          <View style={[styles.section, { flex: 3 }]}>
+          <View style={[styles.section, { flex: 3, marginVertical: 16 }]}>
             <FlatList
               data={list.todos}
               renderItem={({ item, index }) => this.renderTodo(item, index)}
-              keyExtractor={(_, index) => index.toString()}
-              contentContainerStyle={{
-                paddingHorizontal: 32,
-                paddingVertical: 64,
-              }}
+              keyExtractor={(item) => item.title}
               showsVerticalScrollIndicator={false}
             />
           </View>
@@ -193,6 +217,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     flexDirection: "row",
     alignItems: "center",
+    paddingLeft: 32,
   },
   todo: {
     color: colors.black,
